@@ -1,15 +1,13 @@
-const express = require('express');
+import express from 'express';
 const app = express();
-require('dotenv').config()
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const cors = require('cors');
+import 'dotenv/config'
+import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
+import cors from 'cors';
 const port = process.env.PORT || 3000;
-
 
 // MiddleWare
 app.use(cors())
 app.use(express.json())
-
 
 // Mongo DB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.r0dgoug.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -32,6 +30,7 @@ async function run() {
             const result = await coffeesCollection.find().toArray()
             res.send(result)
         })
+
         // dynamic id in dynamic routes
         app.get('/coffees/:id', async (req, res) => {
             const id = req.params.id;
@@ -44,6 +43,17 @@ async function run() {
         app.post('/coffees', async (req, res) => {
             const newCoffees = req.body;
             const result = await coffeesCollection.insertOne(newCoffees)
+            res.send(result)
+        })
+
+        // updated coffee data from client site
+        app.put('/coffees/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updateCoffee = req.body;
+            const updateDoc = { $set: updateCoffee };
+            const result = await coffeesCollection.updateOne(filter, updateDoc, options)
             res.send(result)
         })
 
@@ -63,8 +73,6 @@ async function run() {
     }
 }
 run().catch(console.dir);
-
-
 
 
 app.get('/', (req, res) => {
